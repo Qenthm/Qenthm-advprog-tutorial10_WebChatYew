@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 use web_sys::HtmlInputElement;
 use yew::prelude::*;
 use yew_agent::{Bridge, Bridged};
+use js_sys::Math;
 
 use crate::services::event_bus::EventBus;
 use crate::{services::websocket::WebsocketService, User};
@@ -46,6 +47,7 @@ pub struct Chat {
     wss: WebsocketService,
     messages: Vec<MessageData>,
 }
+
 impl Component for Chat {
     type Message = Msg;
     type Properties = ();
@@ -165,22 +167,23 @@ impl Component for Chat {
                 <div class="grow h-screen flex flex-col">
                     <div class="w-full h-14 border-b-2 border-gray-300"><div class="text-xl p-3">{"💬 Chat!"}</div></div>
                     <div class="w-full grow overflow-auto border-b-2 border-gray-300">
+                        <div class="p-4 bg-blue-100 rounded mb-2">
+                            {"Welcome to YewChat! 🎉 Be creative and have fun chatting!"}
+                        </div>
                         {
                             self.messages.iter().map(|m| {
-                                let user = self.users.iter().find(|u| u.name == m.from).unwrap();
                                 html!{
                                     <div class="flex items-end w-3/6 bg-gray-100 m-8 rounded-tl-lg rounded-tr-lg rounded-br-lg ">
-                                        <img class="w-8 h-8 rounded-full m-3" src={user.avatar.clone()} alt="avatar"/>
                                         <div class="p-3">
                                             <div class="text-sm">
                                                 {m.from.clone()}
                                             </div>
-                                            <div class="text-xs text-gray-500">
-                                                if m.message.ends_with(".gif") {
-                                                    <img class="mt-3" src={m.message.clone()}/>
-                                                } else {
-                                                    {m.message.clone()}
-                                                }
+                                            <div class="flex items-center">
+                                                <span class="font-bold">{ &m.from }</span>
+                                                <span class="ml-2">{ parse_emojis(&m.message) }</span>
+                                            </div>
+                                            <div class="text-xs text-gray-400">
+                                                {"Just now"}
                                             </div>
                                         </div>
                                     </div>
@@ -197,8 +200,20 @@ impl Component for Chat {
                             </svg>
                         </button>
                     </div>
+                    <div class="text-xs text-gray-500 mb-2">
+                        {"Type :smile: :heart: :thumbsup: :laugh: :sob: :fire: for emojis!"}
+                    </div>
                 </div>
             </div>
         }
     }
+}
+
+fn parse_emojis(text: &str) -> String {
+    text.replace(":smile:", "😄")
+        .replace(":heart:", "❤️")
+        .replace(":thumbsup:", "👍")
+        .replace(":laugh:", "😂")
+        .replace(":sob:", "😭")
+        .replace(":fire:", "🔥")
 }
